@@ -4,7 +4,7 @@ const N: usize = 100;
 
 struct Cadena {
     longitud: usize,
-    caracteres: [char; N],
+    caracteres: [char; N], // Arreglo
 }
 
 impl Cadena {
@@ -16,12 +16,12 @@ impl Cadena {
         }
     }
 
-    // Metodo para obtener la longitud
+    // Metodo para obtener la longitud de la cadena
     fn obtener_longitud(&self) -> usize {
         self.longitud
     }
 
-    // Metodo para adicionar caracteres
+    // Metodo para adicionar caracteres uno por uno
     fn add_char(&mut self, c: char) {
         if self.longitud < N {
             self.caracteres[self.longitud] = c;
@@ -29,7 +29,8 @@ impl Cadena {
         }
     }
 
-    // Metodo para devolver un caracter dada la posicion
+    // Metodo para devolver un caracter dada su posicion.
+    // La posicion que ingresa el usuario empieza en 1.
     fn obtener_char(&self, pos: usize) -> char {
         if pos > 0 && pos <= self.longitud {
             self.caracteres[pos - 1]
@@ -106,19 +107,13 @@ impl Cadena {
         for i in 0..self.longitud {
             let car = self.caracteres[i];
 
-            let letra = (car >= 'a' && car <= 'z') || (car >= 'A' && car <= 'Z');
+            let letra = (car >= 'a' && car <= 'z')
+                || (car >= 'A' && car <= 'Z');
 
             if letra {
-                let esvocal = car == 'a'
-                    || car == 'e'
-                    || car == 'i'
-                    || car == 'o'
-                    || car == 'u'
-                    || car == 'A'
-                    || car == 'E'
-                    || car == 'I'
-                    || car == 'O'
-                    || car == 'U';
+                let esvocal =
+                    car == 'a' || car == 'e' || car == 'i' || car == 'o' || car == 'u' ||
+                    car == 'A' || car == 'E' || car == 'I' || car == 'O' || car == 'U';
 
                 if esvocal {
                     vocal += 1;
@@ -131,12 +126,16 @@ impl Cadena {
         (vocal, consonante)
     }
 
-    // Metodo para eliminar caracteres duplicados consecutivos
-    // Ej: aaabbbccdfd = abcdfd
+    // Metodo para eliminar caracteres duplicados consecutivos.
+    // Ejemplo:
+    // aaabbbccdfd -> abcdfd
     fn eliminar_repetidos_consecutivos(&self) -> Cadena {
         let mut cad = Cadena::new();
 
         for i in 0..self.longitud {
+            // Si es el primer caracter se copia.
+            // Si no es el primero, se copia solamente
+            // cuando es diferente al caracter anterior.
             if i == 0 || self.caracteres[i] != self.caracteres[i - 1] {
                 cad.add_char(self.caracteres[i]);
             }
@@ -150,23 +149,30 @@ impl Cadena {
         if p > 0 && p <= self.longitud {
             let pos = p - 1;
 
+            // Movemos todos los caracteres de la derecha
+            // una posicion hacia la izquierda.
             for i in pos..self.longitud - 1 {
                 self.caracteres[i] = self.caracteres[i + 1];
             }
 
             self.longitud -= 1;
+            self.caracteres[self.longitud] = '\0';
         }
     }
 
-    // Metodo para obtener una subcadena
-    // Ej: Hola como va -> inicio = 3 fin = 9 => la como
+    // Metodo para obtener una subcadena indicando inicio y fin.
+    // Ejemplo:
+    // Hola como va -> inicio = 3, fin = 9 -> "la como"
     fn subcadena(&self, inicio: usize, fin: usize) -> Cadena {
         let mut subcad = Cadena::new();
 
+        // Verificamos que las posiciones sean validas.
         if inicio < 1 || fin > self.longitud || inicio > fin {
             return subcad;
         }
 
+        // El usuario trabaja desde 1.
+        // El arreglo trabaja desde 0.
         for i in (inicio - 1)..fin {
             subcad.add_char(self.caracteres[i]);
         }
@@ -174,162 +180,41 @@ impl Cadena {
         subcad
     }
 
-    // =========================================================
-    // OPCION 10
-    // Eliminar palabras que contengan una vocal repetida
-    //
-    // Ej:
-    // ESTA ES UNA PEQUEÑA PRUEBA
-    // Resultado:
-    // ESTA ES UNA PRUEBA
-    // =========================================================
-    fn eliminar_palabras_vocal_repetida(&self) -> Cadena {
-        let mut resultado = Cadena::new();
-        let mut i = 0;
-
-        while i < self.longitud {
-            // Saltar espacios
-            while i < self.longitud && self.caracteres[i] == ' ' {
-                i += 1;
-            }
-
-            if i >= self.longitud {
-                break;
-            }
-
-            // Guardamos donde comienza la palabra
-            let inicio = i;
-
-            // Avanzamos hasta encontrar un espacio
-            while i < self.longitud && self.caracteres[i] != ' ' {
-                i += 1;
-            }
-
-            // Aqui termina la palabra
-            let fin = i;
-
-            // Verificar si alguna vocal esta repetida
-            let mut tiene_repetida = false;
-            let mut j = inicio;
-
-            while j < fin {
-                let c = self.caracteres[j];
-
-                // Verificamos si el caracter es una vocal
-                let es_vocal = c == 'a'
-                    || c == 'e'
-                    || c == 'i'
-                    || c == 'o'
-                    || c == 'u'
-                    || c == 'A'
-                    || c == 'E'
-                    || c == 'I'
-                    || c == 'O'
-                    || c == 'U';
-
-                if es_vocal {
-                    let mut contador = 0;
-                    let mut k = inicio;
-
-                    // Contamos cuantas veces aparece esa vocal
-                    while k < fin {
-                        if self.caracteres[k] == c {
-                            contador += 1;
-                        }
-
-                        k += 1;
-                    }
-
-                    // Si aparece 2 o mas veces,
-                    // eliminamos toda la palabra
-                    if contador >= 2 {
-                        tiene_repetida = true;
-                        break;
-                    }
-                }
-
-                j += 1;
-            }
-
-            // Si la palabra NO tiene vocal repetida,
-            // la copiamos al resultado
-            if !tiene_repetida {
-                // Agregamos espacio antes de la palabra
-                // excepto cuando es la primera
-                if resultado.longitud > 0 {
-                    resultado.add_char(' ');
-                }
-
-                let mut k = inicio;
-
-                while k < fin {
-                    resultado.add_char(self.caracteres[k]);
-                    k += 1;
-                }
-            }
-        }
-
-        resultado
-    }
-
-    // =========================================================
-    // OPCION 11
-    // Eliminar todos los espacios
-    //
-    // Ej:
-    // Hola como va
-    // Resultado:
-    // Holacomova
-    // =========================================================
-    fn eliminar_espacios(&self) -> Cadena {
-        let mut resultado = Cadena::new();
-
-        for i in 0..self.longitud {
-            if self.caracteres[i] != ' ' {
-                resultado.add_char(self.caracteres[i]);
-            }
-        }
-
-        resultado
-    }
-
-    // Metodo para limpiar la cadena
+    // Metodo para limpiar completamente la cadena
     fn limpiar(&mut self) {
         self.longitud = 0;
         self.caracteres = ['\0'; N];
     }
 
-    // Metodo para mostrar
+    // Metodo para mostrar la cadena
     fn mostrar(&self) {
         for i in 0..self.longitud {
             print!("{}", self.caracteres[i]);
         }
-
         println!();
     }
 }
 
-// =========================================================
-// Entrada de datos
-// =========================================================
-
+// Funcion para leer una linea desde teclado
 fn leer_linea() -> String {
     let mut entrada = String::new();
 
-    io::stdin().read_line(&mut entrada).expect("Error al leer");
+    io::stdin()
+        .read_line(&mut entrada)
+        .expect("Error al leer");
 
-    entrada.trim().to_string()
+    entrada.trim_end_matches(&['\n', '\r'][..]).to_string()
 }
 
+// Funcion para leer un numero
 fn leer_numero() -> Option<usize> {
-    leer_linea().parse::<usize>().ok()
+    leer_linea().trim().parse::<usize>().ok()
 }
 
-// =========================================================
-// MENU
-// =========================================================
-
+// Funcion para mostrar el menu
 fn mostrar_menu(c: &Cadena) {
+    // Construimos una vista de la cadena actual
+    // solamente para mostrarla en el encabezado.
     let mut preview = String::new();
 
     for i in 0..c.longitud {
@@ -340,159 +225,132 @@ fn mostrar_menu(c: &Cadena) {
         preview = String::from("(vacia)");
     }
 
-    println!();
-    println!("╔══════════════════════════════════════════╗");
-    println!("║              CADENAS - POO              ║");
-    println!("║ Cadena: {:<32}║", preview);
-    println!("╠══════════════════════════════════════════╣");
-    println!("║ 1. Ingresar nueva cadena                ║");
-    println!("║ 2. Mostrar cadena                       ║");
-    println!("║ 3. Longitud                             ║");
-    println!("║ 4. Obtener caracter (posicion)          ║");
-    println!("║ 5. Cantidad repeticiones (char)         ║");
-    println!("║ 6. Invertir cadena                      ║");
-    println!("║ 7. Vocales y consonantes                ║");
-    println!("║ 8. Eliminar caracter (pos)              ║");
-    println!("║ 9. Subcadena                            ║");
-    println!("║ 10. Eliminar palabras con vocal repetida║");
-    println!("║ 11. Eliminar espacios                   ║");
-    println!("║ 12. Eliminar repetidos consecutivos    ║");
-    println!("╠══════════════════════════════════════════╣");
-    println!("║ Q. Salir                                ║");
-    println!("╚══════════════════════════════════════════╝");
+    println!("\n╔══════════════════════════════════╗");
+    println!("║   CADENA: {:>22}  ║", preview);
+    println!("╠══════════════════════════════════╣");
+    println!("║  1. Ingresar nueva cadena        ║");
+    println!("║  2. Mostrar cadena               ║");
+    println!("║  3. Longitud                     ║");
+    println!("║  4. Obtener carácter (posición)  ║");
+    println!("║  5. Cantidad repeticiones (char) ║");
+    println!("║  6. Invertir cadena              ║");
+    println!("║  7. Nros. Vocales y Consonantes  ║");
+    println!("║  8. Eliminar caracter (pos)      ║");
+    println!("║  9. Subcadena                    ║");
+    println!("╠══════════════════════════════════╣");
+    println!("║  Q. Salir                        ║");
+    println!("╚══════════════════════════════════╝");
 
-    print!("Opcion: ");
-    io::stdout().flush().expect("Error al mostrar menu");
+    print!("   Opción: ");
+    io::stdout().flush().expect("Error al mostrar menú");
 }
 
-// =========================================================
-// MAIN
-// =========================================================
-
 fn main() {
-    println!("====================================");
-    println!("      CADENAS - POO                 ");
-    println!("      Programacion I                ");
-    println!("====================================");
+    println!("════════════════════════════════════");
+    println!("  Cadenas - POO — Programación I   ");
+    println!("════════════════════════════════════");
 
     let mut c = Cadena::new();
 
     loop {
         mostrar_menu(&c);
-
         let opcion = leer_linea();
 
         match opcion.as_str() {
-            // =================================================
-            // 1. INGRESAR CADENA
-            // =================================================
             "1" => {
-                println!("Ingresa la cadena:");
-
+                println!("  Ingresa la cadena:");
                 let entrada = leer_linea();
 
                 c.limpiar();
 
+                // Cargamos la cadena caracter por caracter
+                // usando el metodo add_char().
                 for ch in entrada.chars() {
                     c.add_char(ch);
                 }
 
-                println!("Cadena cargada ({} caracteres)", c.obtener_longitud());
+                println!(
+                    "  Cadena cargada ({} caracteres)",
+                    c.obtener_longitud()
+                );
             }
 
-            // =================================================
-            // 2. MOSTRAR
-            // =================================================
             "2" => {
-                print!("Cadena: ");
+                print!("  Cadena: ");
                 c.mostrar();
             }
 
-            // =================================================
-            // 3. LONGITUD
-            // =================================================
             "3" => {
-                println!("Longitud: {}", c.obtener_longitud());
+                println!("  Longitud: -> {}", c.obtener_longitud());
             }
 
-            // =================================================
-            // 4. OBTENER CARACTER
-            // =================================================
             "4" => {
-                println!("Ingresa la posicion (1 = izquierda):");
+                println!("  Ingresa la posición (1 = izquierda):");
 
                 match leer_numero() {
                     Some(pos) if pos >= 1 && pos <= c.obtener_longitud() => {
-                        println!("Caracter en posicion {}: '{}'", pos, c.obtener_char(pos));
+                        println!(
+                            "  Carácter en posición {}: -> '{}'",
+                            pos,
+                            c.obtener_char(pos)
+                        );
                     }
 
                     Some(_) => {
-                        println!("Posicion fuera de rango.");
+                        println!(
+                            "  Posición fuera de rango (1 a {}).",
+                            c.obtener_longitud()
+                        );
                     }
 
-                    None => {
-                        println!("Posicion invalida.");
-                    }
+                    None => println!("  Posición inválida."),
                 }
             }
 
-            // =================================================
-            // 5. CONTAR APARICIONES
-            // =================================================
             "5" => {
-                println!("Ingresa el caracter:");
-
+                println!("  Ingresa el caracter:");
                 let entrada = leer_linea();
 
                 match entrada.chars().next() {
                     Some(car) => {
                         let cantidad = c.contar_apariciones(car);
 
-                        println!("El caracter '{}' aparece {} vez/veces", car, cantidad);
+                        println!(
+                            "  El caracter aparece: {} vez/veces",
+                            cantidad
+                        );
                     }
 
-                    None => {
-                        println!("No ingresaste ningun caracter.");
-                    }
+                    None => println!("  No ingresaste ningun caracter."),
                 }
             }
 
-            // =================================================
-            // 6. INVERTIR
-            // =================================================
             "6" => {
                 if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia");
+                    println!("La cadena esta vacia.");
                 } else {
                     c.invertir();
 
                     println!("La cadena invertida es:");
-
                     c.mostrar();
                 }
             }
 
-            // =================================================
-            // 7. VOCALES Y CONSONANTES
-            // =================================================
             "7" => {
                 if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia");
+                    println!("La cadena esta vacia.");
                 } else {
-                    let (vocal, consonante) = c.contar_vocales_consonantes();
+                    let (vocal, consonante) =
+                        c.contar_vocales_consonantes();
 
-                    println!("Numero de vocales: {}", vocal);
-
-                    println!("Numero de consonantes: {}", consonante);
+                    println!("El nro de vocales es: {}", vocal);
+                    println!("El nro de consonantes es: {}", consonante);
                 }
             }
 
-            // =================================================
-            // 8. ELIMINAR CARACTER POR POSICION
-            // =================================================
             "8" => {
                 if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia");
+                    println!("La cadena esta vacia.");
                 } else {
                     println!("Ingresa la posicion a eliminar:");
 
@@ -500,124 +358,67 @@ fn main() {
                         Some(pos) if pos > 0 && pos <= c.obtener_longitud() => {
                             c.eliminar_car(pos);
 
-                            println!("Resultado:");
-
+                            println!("Resultado de la nueva cadena:");
                             c.mostrar();
                         }
 
-                        Some(_) => {
-                            println!("Posicion fuera de rango.");
-                        }
-
-                        None => {
-                            println!("Invalido.");
-                        }
+                        Some(_) => println!("Posicion fuera de rango."),
+                        None => println!("Invalido."),
                     }
                 }
             }
 
-            // =================================================
-            // 9. SUBCADENA
-            // =================================================
             "9" => {
                 if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia");
+                    println!("La cadena esta vacia.");
                 } else {
                     println!("Ingresa la posicion de inicio:");
 
                     match leer_numero() {
-                        Some(inicio) if inicio > 0 && inicio <= c.obtener_longitud() => {
+                        Some(inicio)
+                            if inicio > 0
+                                && inicio <= c.obtener_longitud() =>
+                        {
                             println!("Ingresa la posicion del fin:");
 
                             match leer_numero() {
-                                Some(fin) if fin >= inicio && fin <= c.obtener_longitud() => {
-                                    let subca = c.subcadena(inicio, fin);
+                                Some(fin)
+                                    if fin >= inicio
+                                        && fin <= c.obtener_longitud() =>
+                                {
+                                    let subca =
+                                        c.subcadena(inicio, fin);
 
-                                    println!("La subcadena [{} - {}] es:", inicio, fin);
+                                    println!(
+                                        "La subcadena entre las posiciones [{}-{}] es:",
+                                        inicio, fin
+                                    );
 
                                     subca.mostrar();
 
-                                    println!("Longitud: {}", subca.longitud);
+                                    println!(
+                                        "La longitud de la nueva cadena es: {}",
+                                        subca.longitud
+                                    );
                                 }
 
-                                Some(_) => {
-                                    println!("Fin invalido.");
-                                }
-
-                                None => {
-                                    println!("Posicion invalida.");
-                                }
+                                Some(_) => println!("Fin invalido."),
+                                None => println!("Posicion invalida."),
                             }
                         }
 
-                        Some(_) => {
-                            println!("Inicio fuera de rango.");
-                        }
-
-                        None => {
-                            println!("Posicion invalida.");
-                        }
+                        Some(_) => println!("Inicio fuera de rango."),
+                        None => println!("Posicion invalida."),
                     }
                 }
             }
 
-            // =================================================
-            // 10. ELIMINAR PALABRAS CON VOCAL REPETIDA
-            // =================================================
-            "10" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    let nueva = c.eliminar_palabras_vocal_repetida();
-
-                    println!("Resultado:");
-
-                    nueva.mostrar();
-                }
-            }
-
-            // =================================================
-            // 11. ELIMINAR ESPACIOS
-            // =================================================
-            "11" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    let nueva = c.eliminar_espacios();
-
-                    println!("Resultado:");
-
-                    nueva.mostrar();
-                }
-            }
-
-            // =================================================
-            // 12. ELIMINAR REPETIDOS CONSECUTIVOS
-            // =================================================
-            "12" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    let nueva = c.eliminar_repetidos_consecutivos();
-
-                    println!("Resultado:");
-
-                    nueva.mostrar();
-                }
-            }
-
-            // =================================================
-            // SALIR
-            // =================================================
             "q" | "Q" => {
-                println!("Hasta luego.");
-
+                println!("\n  Hasta luego.\n");
                 break;
             }
 
-            _ => {
-                println!("Opcion no valida.");
-            }
+            _ => println!("  Opcion no valida."),
         }
     }
 }
