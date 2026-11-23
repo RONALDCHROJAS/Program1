@@ -1,424 +1,73 @@
-use std::io::{self, Write};
 
-const N: usize = 100;
+mod entidades;
+mod input;
 
-struct Cadena {
-    longitud: usize,
-    caracteres: [char; N], // Arreglo
-}
+use crossterm::{
+    cursor,
+    event::{KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    execute,
+    terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
+};
 
-impl Cadena {
-    // Constructor
-    fn new() -> Self {
-        Cadena {
-            longitud: 0,
-            caracteres: ['\0'; N],
-        }
-    }
-
-    // Metodo para obtener la longitud de la cadena
-    fn obtener_longitud(&self) -> usize {
-        self.longitud
-    }
-
-    // Metodo para adicionar caracteres uno por uno
-    fn add_char(&mut self, c: char) {
-        if self.longitud < N {
-            self.caracteres[self.longitud] = c;
-            self.longitud += 1;
-        }
-    }
-
-    // Metodo para devolver un caracter dada su posicion.
-    // La posicion que ingresa el usuario empieza en 1.
-    fn obtener_char(&self, pos: usize) -> char {
-        if pos > 0 && pos <= self.longitud {
-            self.caracteres[pos - 1]
-        } else {
-            '\0'
-        }
-    }
-
-    // Metodo para contar la cantidad de apariciones de un caracter
-    fn contar_apariciones(&self, c: char) -> usize {
-        let mut contador: usize = 0;
-
-        for i in 0..self.longitud {
-            if self.caracteres[i] == c {
-                contador += 1;
-            }
-        }
-
-        contador
-    }
-
-    // Metodo que devuelve el caracter mas repetido
-    fn char_mas_repetido(&self) -> char {
-        if self.longitud == 0 {
-            return '\0';
-        }
-
-        let mut max_char = self.caracteres[0];
-        let mut max_cont = 0;
-
-        for i in 0..self.longitud {
-            let car = self.caracteres[i];
-            let mut cont = 0;
-
-            for j in 0..self.longitud {
-                if self.caracteres[j] == car {
-                    cont += 1;
-                }
-            }
-
-            if cont > max_cont {
-                max_cont = cont;
-                max_char = car;
-            }
-        }
-
-        max_char
-    }
-
-    // Metodo para invertir la cadena
-    fn invertir(&mut self) {
-        if self.longitud <= 1 {
-            return;
-        }
-
-        let mut izq = 0;
-        let mut der = self.longitud - 1;
-
-        while izq < der {
-            let temp = self.caracteres[izq];
-            self.caracteres[izq] = self.caracteres[der];
-            self.caracteres[der] = temp;
-
-            izq += 1;
-            der -= 1;
-        }
-    }
-
-    // Metodo para contar vocales y consonantes
-    fn contar_vocales_consonantes(&self) -> (usize, usize) {
-        let mut vocal: usize = 0;
-        let mut consonante: usize = 0;
-
-        for i in 0..self.longitud {
-            let car = self.caracteres[i];
-
-            let letra = (car >= 'a' && car <= 'z')
-                || (car >= 'A' && car <= 'Z');
-
-            if letra {
-                let esvocal =
-                    car == 'a' || car == 'e' || car == 'i' || car == 'o' || car == 'u' ||
-                    car == 'A' || car == 'E' || car == 'I' || car == 'O' || car == 'U';
-
-                if esvocal {
-                    vocal += 1;
-                } else {
-                    consonante += 1;
-                }
-            }
-        }
-
-        (vocal, consonante)
-    }
-
-    // Metodo para eliminar caracteres duplicados consecutivos.
-    // Ejemplo:
-    // aaabbbccdfd -> abcdfd
-    fn eliminar_repetidos_consecutivos(&self) -> Cadena {
-        let mut cad = Cadena::new();
-
-        for i in 0..self.longitud {
-            // Si es el primer caracter se copia.
-            // Si no es el primero, se copia solamente
-            // cuando es diferente al caracter anterior.
-            if i == 0 || self.caracteres[i] != self.caracteres[i - 1] {
-                cad.add_char(self.caracteres[i]);
-            }
-        }
-
-        cad
-    }
-
-    // Metodo para eliminar un caracter de una posicion dada
-    fn eliminar_car(&mut self, p: usize) {
-        if p > 0 && p <= self.longitud {
-            let pos = p - 1;
-
-            // Movemos todos los caracteres de la derecha
-            // una posicion hacia la izquierda.
-            for i in pos..self.longitud - 1 {
-                self.caracteres[i] = self.caracteres[i + 1];
-            }
-
-            self.longitud -= 1;
-            self.caracteres[self.longitud] = '\0';
-        }
-    }
-
-    // Metodo para obtener una subcadena indicando inicio y fin.
-    // Ejemplo:
-    // Hola como va -> inicio = 3, fin = 9 -> "la como"
-    fn subcadena(&self, inicio: usize, fin: usize) -> Cadena {
-        let mut subcad = Cadena::new();
-
-        // Verificamos que las posiciones sean validas.
-        if inicio < 1 || fin > self.longitud || inicio > fin {
-            return subcad;
-        }
-
-        // El usuario trabaja desde 1.
-        // El arreglo trabaja desde 0.
-        for i in (inicio - 1)..fin {
-            subcad.add_char(self.caracteres[i]);
-        }
-
-        subcad
-    }
-
-    // Metodo para limpiar completamente la cadena
-    fn limpiar(&mut self) {
-        self.longitud = 0;
-        self.caracteres = ['\0'; N];
-    }
-
-    // Metodo para mostrar la cadena
-    fn mostrar(&self) {
-        for i in 0..self.longitud {
-            print!("{}", self.caracteres[i]);
-        }
-        println!();
-    }
-}
-
-// Funcion para leer una linea desde teclado
-fn leer_linea() -> String {
-    let mut entrada = String::new();
-
-    io::stdin()
-        .read_line(&mut entrada)
-        .expect("Error al leer");
-
-    entrada.trim_end_matches(&['\n', '\r'][..]).to_string()
-}
-
-// Funcion para leer un numero
-fn leer_numero() -> Option<usize> {
-    leer_linea().trim().parse::<usize>().ok()
-}
-
-// Funcion para mostrar el menu
-fn mostrar_menu(c: &Cadena) {
-    // Construimos una vista de la cadena actual
-    // solamente para mostrarla en el encabezado.
-    let mut preview = String::new();
-
-    for i in 0..c.longitud {
-        preview.push(c.caracteres[i]);
-    }
-
-    if preview.is_empty() {
-        preview = String::from("(vacia)");
-    }
-
-    println!("\n╔══════════════════════════════════╗");
-    println!("║   CADENA: {:>22}  ║", preview);
-    println!("╠══════════════════════════════════╣");
-    println!("║  1. Ingresar nueva cadena        ║");
-    println!("║  2. Mostrar cadena               ║");
-    println!("║  3. Longitud                     ║");
-    println!("║  4. Obtener carácter (posición)  ║");
-    println!("║  5. Cantidad repeticiones (char) ║");
-    println!("║  6. Invertir cadena              ║");
-    println!("║  7. Nros. Vocales y Consonantes  ║");
-    println!("║  8. Eliminar caracter (pos)      ║");
-    println!("║  9. Subcadena                    ║");
-    println!("╠══════════════════════════════════╣");
-    println!("║  Q. Salir                        ║");
-    println!("╚══════════════════════════════════╝");
-
-    print!("   Opción: ");
-    io::stdout().flush().expect("Error al mostrar menú");
-}
+use entidades::Juego;
+use input::{leer_controles, Controles};
+use std::io::stdout;
+use std::time::Duration;
 
 fn main() {
-    println!("════════════════════════════════════");
-    println!("  Cadenas - POO — Programación I   ");
-    println!("════════════════════════════════════");
+    let mut salida = stdout();
 
-    let mut c = Cadena::new();
+    if let Err(error) = terminal::enable_raw_mode() {
+        eprintln!("No se pudo activar el teclado: {}", error);
+        return;
+    }
 
-    loop {
-        mostrar_menu(&c);
-        let opcion = leer_linea();
+    if let Err(error) = execute!(
+        salida,
+        EnterAlternateScreen,
+        cursor::Hide,
+        Clear(ClearType::All),
+        PushKeyboardEnhancementFlags(
+            KeyboardEnhancementFlags::REPORT_EVENT_TYPES
+        )
+    ) {
+        let _ = terminal::disable_raw_mode();
+        eprintln!("No se pudo preparar la pantalla: {}", error);
+        return;
+    }
 
-        match opcion.as_str() {
-            "1" => {
-                println!("  Ingresa la cadena:");
-                let entrada = leer_linea();
+    let resultado = std::panic::catch_unwind(|| {
+        let mut juego = Juego::new();
+        let mut controles = Controles::default();
 
-                c.limpiar();
+        loop {
+            // Leer las teclas que están presionadas.
+            leer_controles(&mut controles);
 
-                // Cargamos la cadena caracter por caracter
-                // usando el metodo add_char().
-                for ch in entrada.chars() {
-                    c.add_char(ch);
-                }
-
-                println!(
-                    "  Cadena cargada ({} caracteres)",
-                    c.obtener_longitud()
-                );
-            }
-
-            "2" => {
-                print!("  Cadena: ");
-                c.mostrar();
-            }
-
-            "3" => {
-                println!("  Longitud: -> {}", c.obtener_longitud());
-            }
-
-            "4" => {
-                println!("  Ingresa la posición (1 = izquierda):");
-
-                match leer_numero() {
-                    Some(pos) if pos >= 1 && pos <= c.obtener_longitud() => {
-                        println!(
-                            "  Carácter en posición {}: -> '{}'",
-                            pos,
-                            c.obtener_char(pos)
-                        );
-                    }
-
-                    Some(_) => {
-                        println!(
-                            "  Posición fuera de rango (1 a {}).",
-                            c.obtener_longitud()
-                        );
-                    }
-
-                    None => println!("  Posición inválida."),
-                }
-            }
-
-            "5" => {
-                println!("  Ingresa el caracter:");
-                let entrada = leer_linea();
-
-                match entrada.chars().next() {
-                    Some(car) => {
-                        let cantidad = c.contar_apariciones(car);
-
-                        println!(
-                            "  El caracter aparece: {} vez/veces",
-                            cantidad
-                        );
-                    }
-
-                    None => println!("  No ingresaste ningun caracter."),
-                }
-            }
-
-            "6" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    c.invertir();
-
-                    println!("La cadena invertida es:");
-                    c.mostrar();
-                }
-            }
-
-            "7" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    let (vocal, consonante) =
-                        c.contar_vocales_consonantes();
-
-                    println!("El nro de vocales es: {}", vocal);
-                    println!("El nro de consonantes es: {}", consonante);
-                }
-            }
-
-            "8" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    println!("Ingresa la posicion a eliminar:");
-
-                    match leer_numero() {
-                        Some(pos) if pos > 0 && pos <= c.obtener_longitud() => {
-                            c.eliminar_car(pos);
-
-                            println!("Resultado de la nueva cadena:");
-                            c.mostrar();
-                        }
-
-                        Some(_) => println!("Posicion fuera de rango."),
-                        None => println!("Invalido."),
-                    }
-                }
-            }
-
-            "9" => {
-                if c.obtener_longitud() == 0 {
-                    println!("La cadena esta vacia.");
-                } else {
-                    println!("Ingresa la posicion de inicio:");
-
-                    match leer_numero() {
-                        Some(inicio)
-                            if inicio > 0
-                                && inicio <= c.obtener_longitud() =>
-                        {
-                            println!("Ingresa la posicion del fin:");
-
-                            match leer_numero() {
-                                Some(fin)
-                                    if fin >= inicio
-                                        && fin <= c.obtener_longitud() =>
-                                {
-                                    let subca =
-                                        c.subcadena(inicio, fin);
-
-                                    println!(
-                                        "La subcadena entre las posiciones [{}-{}] es:",
-                                        inicio, fin
-                                    );
-
-                                    subca.mostrar();
-
-                                    println!(
-                                        "La longitud de la nueva cadena es: {}",
-                                        subca.longitud
-                                    );
-                                }
-
-                                Some(_) => println!("Fin invalido."),
-                                None => println!("Posicion invalida."),
-                            }
-                        }
-
-                        Some(_) => println!("Inicio fuera de rango."),
-                        None => println!("Posicion invalida."),
-                    }
-                }
-            }
-
-            "q" | "Q" => {
-                println!("\n  Hasta luego.\n");
+            if controles.salir {
                 break;
             }
 
-            _ => println!("  Opcion no valida."),
+            // Actualizar movimiento y disparos.
+            juego.actualizar_controles(&controles);
+
+            juego.actualizar();
+            juego.dibujar();
+
+            std::thread::sleep(Duration::from_millis(50));
         }
+    });
+
+    let _ = execute!(
+        salida,
+        PopKeyboardEnhancementFlags,
+        cursor::Show,
+        LeaveAlternateScreen
+    );
+
+    let _ = terminal::disable_raw_mode();
+
+    if resultado.is_err() {
+        eprintln!("El juego finalizo inesperadamente.");
     }
 }
